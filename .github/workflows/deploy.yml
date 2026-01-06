@@ -1,1 +1,45 @@
+name: Deploy to GitHub Pages
 
+on:
+  push:
+    branches: ["main"] # Berjalan otomatis saat ada perubahan di branch main
+
+permissions:
+  contents: read
+  pages: write      # Izin untuk menulis ke GitHub Pages
+  id-token: write   # Izin untuk autentikasi
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4 # Mengambil kode dari repository
+        
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20       # Menggunakan Node.js versi 20
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm install         # Menginstal library yang dibutuhkan (React, Tailwind, dll)
+        
+      - name: Build
+        run: npm run build       # Mengubah kode menjadi file statis (folder /dist)
+        
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist           # Mengambil hasil build dari folder dist untuk di-deploy
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build                # Menunggu proses build selesai
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4 # Menerbitkan folder dist ke URL GitHub Pages Anda
